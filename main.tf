@@ -1,25 +1,19 @@
-resource "aws_acm_certificate" "default" {
+resource "aws_acm_certificate" "cert" {
   domain_name               = "${var.domain_name}"
-  validation_method         = "${var.validation_method}"
+  validation_method         = "DNS"
   subject_alternative_names = ["${var.subject_alternative_names}"]
-  tags                      = "${var.tags}"
 }
 
-data "aws_route53_zone" "default" {
-  count        = "${var.process_domain_validation_options == "true" && var.validation_method == "DNS" ? 1 : 0}"
-  name         = "${var.domain_name}."
-  private_zone = false
+resource "aws_route53_record" "cert_validation" {
+  count   = "${length(var.subject_alternative_names) + 1}"
+  name    = "${lookup(aws_acm_certificate.cert.domain_validation_options[count.index], "resource_record_name")}"
+  type    = "${lookup(aws_acm_certificate.cert.domain_validation_options[count.index], "resource_record_type")}"
+  zone_id = "${var.zone_id}"
+  records = ["${lookup(aws_acm_certificate.cert.domain_validation_options[count.index], "resource_record_value")}"]
+  ttl     = 60
 }
 
-locals {
-  domain_validation_options = "${aws_acm_certificate.default.domain_validation_options[0]}"
-}
-
-resource "aws_route53_record" "default" {
-  count   = "${var.process_domain_validation_options == "true" && var.validation_method == "DNS" ? 1 : 0}"
-  zone_id = "${data.aws_route53_zone.default.zone_id}"
-  name    = "${local.domain_validation_options["resource_record_name"]}"
-  type    = "${local.domain_validation_options["resource_record_type"]}"
-  ttl     = "${var.ttl}"
-  records = ["${local.domain_validation_options["resource_record_value"]}"]
+resource "aws_acm_certificate_validation" "cert" {
+  certificate_arn         = "${aws_acm_certificate.cert.arn}"
+  validation_record_fqdns = ["${aws_route53_record.cert_validation.*.fqdn}"]
 }

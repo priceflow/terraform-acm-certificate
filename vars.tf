@@ -3,32 +3,20 @@ variable "domain_name" {
   type        = "string"
 }
 
-variable "validation_method" {
-  description = "Which method to use for validation, DNS or EMAIL"
-  type        = "string"
-  default     = "DNS"
+variable "subject_alternative_names" {
+  description = "A list of domains that should be SANs in the issued certificate"
+  type        = "list"
+  default     = []
 }
 
-variable "process_domain_validation_options" {
+variable "zone_id" {
+  description = "The name of the desired Route53 Hosted Zone"
   type        = "string"
-  default     = "true"
-  description = "Flag to enable/disable processing of the record to add to the DNS zone to complete certificate validation"
-}
-
-variable "ttl" {
-  description = "The TTL of the record to add to the DNS zone to complete certificate validation"
-  type        = "string"
-  default     = "300"
+  default     = ""
 }
 
 variable "tags" {
   description = "Additional tags (e.g. map('BusinessUnit`,`XYZ`)"
   type        = "map"
   default     = {}
-}
-
-variable "subject_alternative_names" {
-  description = "A list of domains that should be SANs in the issued certificate"
-  type        = "list"
-  default     = []
 }
