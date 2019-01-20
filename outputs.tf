@@ -7,5 +7,5 @@ output "zone_id" {
 }
 
 output "domain_name" {
-  value = "${aws_acm_certificate_validation.cert.domain_name}"
+  value = "${var.domain_name}"
 }
